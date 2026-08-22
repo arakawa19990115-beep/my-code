@@ -20,9 +20,11 @@ entire value of doing this as a multi-step pipeline instead of one pass.
 ## Pipeline overview
 
 1. **Intake** — make sure there's enough to work with; ask only if truly necessary.
-2. **Interviewer** — organize the raw idea into a structured initial proposal.
+2. **Interviewer** — organize the raw idea into a structured initial proposal, then check the
+   direction with the user before spending four reviewers' worth of work on it.
 3. **Reviewers (×4, parallel)** — profitability / legal / customer needs / competitive
-   differentiation, each producing an independent structured verdict.
+   differentiation, each producing an independent structured verdict, researched with web search
+   where that sharpens the answer.
 4. **Report builder** — synthesize the proposal + four reviews into one cohesive report.
 5. **Deliverable** — render the report as an HTML artifact, and give the user a concise summary
    in chat.
@@ -67,11 +69,28 @@ downstream reviewers and the final report can flag it as something to validate r
 settled fact. This is important: a plausible-sounding fabricated detail that reads as confirmed
 will mislead every later stage.
 
+**Before moving on, show this initial proposal to the user and confirm the direction** (a short
+AskUserQuestion, or just asking in chat if the proposal needs more nuance than a multiple-choice
+question allows — e.g. "この方向性で4つの観点のレビューに進めてよいですか？ずれている点があれば教えてください").
+Four parallel reviewers plus a synthesis is real work; it's worth one checkpoint here to make sure
+it's aimed at the right idea before spending it. If the user corrects something, revise the
+proposal and confirm again rather than pushing ahead on a proposal you know is off. Only skip this
+checkpoint if the user has already been very explicit and detailed about their idea — the check
+is for resolving ambiguity, not a rubber stamp on every run.
+
 ## Stage 3 — Reviewers: four independent evaluations
 
 Spawn four subagents in parallel using the Agent tool, all in the same response (foreground —
 `run_in_background: false` — since the report builder needs all four before it can proceed and
-there's nothing else useful to do meanwhile). Use `general-purpose` as the subagent type.
+there's nothing else useful to do meanwhile). Use `general-purpose` as the subagent type, and make
+sure the subagents have web search available — each reviewer should look things up rather than
+reason from priors alone: the profitability reviewer benchmarking real pricing/CAC figures for
+comparable businesses, the legal reviewer checking actual regulatory regimes or licensing
+requirements for the relevant industry/jurisdiction, the customer-needs reviewer checking whether
+the described problem shows up in real user complaints/forums/reviews, and the competitive
+reviewer naming actual existing competitors rather than a generic category. A verdict grounded in
+a couple of real, cited findings is worth far more than a longer one reasoned entirely from
+priors — push each reviewer to search rather than just assert.
 
 Give each one **only** the Stage 2 proposal plus the lens-specific prompt from
 `references/reviewer_prompts.md` — not the other reviewers' output. Independence is the point:
